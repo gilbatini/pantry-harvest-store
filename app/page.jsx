@@ -4,6 +4,7 @@ import { PRODUCTS, money, fromPrice } from "@/lib/data";
 import { useCart } from "@/lib/cart";
 import Photo, { img } from "@/components/Photo";
 import Reveal, { badgeClass } from "@/components/Reveal";
+import { RETAILERS, branchCount } from "@/lib/stockists";
 
 const firstInStock = (p) => p.variants.find((v) => v.inventory_quantity > 0);
 
@@ -59,7 +60,7 @@ export default function Home() {
               </p>
               <div className="kitchen-meta">
                 <span className="eyebrow">Cooked Mon &amp; Thu / Sealed same day</span>
-                <Link href="#method">Our story →</Link>
+                <Link href="/quality">How we make it →</Link>
               </div>
             </Reveal>
           </div>
@@ -107,6 +108,16 @@ export default function Home() {
               ))}
             </div>
           </div>
+        </div>
+      </section>
+
+      <section className="sec">
+        <div className="shell">
+          <Link href="/stockists" className="instore">
+            <span className="eyebrow">Also on the shelf at</span>
+            <span className="instore-names">{RETAILERS.map((r) => <b key={r.id}>{r.name}</b>)}</span>
+            <span className="instore-cta">{branchCount} stores in Kampala &amp; Entebbe →</span>
+          </Link>
         </div>
       </section>
 

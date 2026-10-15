@@ -39,9 +39,9 @@ export function Header() {
       <div className="shell hdr-in">
         <nav className="nav">
           <Link href="/#range">Shop</Link>
+          <Link href="/stockists">Stockists</Link>
+          <Link href="/quality">Quality</Link>
           <Link href="/#kitchen">Our kitchen</Link>
-          <Link href="/#method">How it&apos;s made</Link>
-          <Link href="/#visit">Stockists</Link>
         </nav>
         <Link href="/" className="mark" aria-label="The Pantry Harvest Co. home">
           <img src="/brand/logo-header.svg" alt="The Pantry Harvest Co." width="150" height="100" />
@@ -141,19 +141,22 @@ export function Footer() {
           {PRODUCTS.map((p) => <Link key={p.id} href={`/products/${p.handle}`}>{p.title}</Link>)}
         </div>
         <div>
-          <p className="eyebrow">Kitchen</p>
-          <span>Cooking Monday &amp; Thursday</span>
-          <span>Open Mon–Sat, 08:00–17:00</span>
-          <span>hello@pantryharvest.co</span>
+          <p className="eyebrow">Help</p>
+          <Link href="/delivery">Delivery &amp; returns</Link>
+          <Link href="/stockists">Find a stockist</Link>
+          <Link href="/quality">Quality &amp; goodness</Link>
+          <Link href="/stockists#trade">Trade enquiries</Link>
         </div>
         <div>
-          <p className="eyebrow">The jar promise</p>
-          <span>Return your empties for UGX 1,000 off</span>
-          <span>No preservatives, ever</span>
+          <p className="eyebrow">Kitchen</p>
+          <span>Kololo, Kampala</span>
+          <span>Cooking Monday &amp; Thursday</span>
+          <span>Mon–Sat, 08:00–17:00</span>
+          <span>hello@pantryharvest.co</span>
         </div>
       </div>
       <div className="shell foot-base">
-        <span>© 2026 The Pantry Harvest Co.</span>
+        <span>© 2026 The Pantry Harvest Co. · <Link href="/terms">Terms</Link> · <Link href="/privacy">Privacy</Link></span>
         <span>Demo storefront · demo prices in UGX</span>
       </div>
     </footer>
