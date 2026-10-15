@@ -37,13 +37,15 @@ export function Header() {
   return (
     <header className={`hdr ${scrolled ? "is-scrolled" : ""}`}>
       <div className="shell hdr-in">
-        <Link href="/" className="mark">THE PANTRY HARVEST CO<span>.</span></Link>
         <nav className="nav">
           <Link href="/#range">Shop</Link>
           <Link href="/#kitchen">Our kitchen</Link>
           <Link href="/#method">How it&apos;s made</Link>
           <Link href="/#visit">Stockists</Link>
         </nav>
+        <Link href="/" className="mark" aria-label="The Pantry Harvest Co. home">
+          <img src="/brand/logo-header.svg" alt="The Pantry Harvest Co." width="150" height="100" />
+        </Link>
         <div className="hdr-right">
           {status && (
             <span className="status"><i className={status.open ? "on" : ""} />{status.label}</span>
@@ -131,7 +133,7 @@ export function Footer() {
     <footer className="foot" id="visit">
       <div className="shell foot-in">
         <div>
-          <p className="mark big">THE PANTRY HARVEST CO<span>.</span></p>
+          <img className="foot-logo" src="/brand/logo-full.svg" alt="The Pantry Harvest Co. — Pure Harvest. Pure Flavour." width="220" height="182" loading="lazy" />
           <p className="muted">Small-batch condiments, cooked twice a week and sealed in glass.</p>
         </div>
         <div>
