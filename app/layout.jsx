@@ -1,6 +1,7 @@
 import "./globals.css";
 import { CartProvider } from "@/lib/cart";
 import { Header, CartDrawer, Footer, Toast } from "@/components/Chrome";
+import ChatWidget from "@/components/ChatWidget";
 
 const site = process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000";
 const description = "Chilli Paste, Basil Pesto, Hummus and Beetroot — cooked twice a week in small batches and sealed in glass.";
@@ -30,6 +31,7 @@ export default function RootLayout({ children }) {
           <Footer />
           <CartDrawer />
           <Toast />
+          <ChatWidget />
         </CartProvider>
       </body>
     </html>

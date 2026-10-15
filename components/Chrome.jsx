@@ -1,6 +1,8 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
+import { CONTACT, waLink, ChatIcon } from "./ChatWidget";
 import { useCart } from "@/lib/cart";
 import { FREE_DELIVERY_AT, PRODUCTS, money } from "@/lib/data";
 import Photo, { img } from "./Photo";
@@ -27,6 +29,8 @@ export function Header() {
   const { count, setOpen } = useCart();
   const [status, setStatus] = useState(null);
   const [scrolled, setScrolled] = useState(false);
+  const [menu, setMenu] = useState(false);
+  const pathname = usePathname();
   useEffect(() => {
     setStatus(kitchenStatus());
     const t = setInterval(() => setStatus(kitchenStatus()), 60000);
@@ -34,28 +38,89 @@ export function Header() {
     window.addEventListener("scroll", s, { passive: true });
     return () => { clearInterval(t); window.removeEventListener("scroll", s); };
   }, []);
+  useEffect(() => setMenu(false), [pathname]);
   return (
-    <header className={`hdr ${scrolled ? "is-scrolled" : ""}`}>
-      <div className="shell hdr-in">
-        <nav className="nav">
-          <Link href="/#range">Shop</Link>
-          <Link href="/stockists">Stockists</Link>
-          <Link href="/quality">Quality</Link>
-          <Link href="/#kitchen">Our kitchen</Link>
-        </nav>
-        <Link href="/" className="mark" aria-label="The Pantry Harvest Co. home">
-          <img src="/brand/logo-header.svg" alt="The Pantry Harvest Co." width="150" height="100" />
-        </Link>
-        <div className="hdr-right">
-          {status && (
-            <span className="status"><i className={status.open ? "on" : ""} />{status.label}</span>
-          )}
-          <button className="cartbtn" onClick={() => setOpen(true)} aria-label={`Basket, ${count} items`}>
-            Basket <b>{count}</b>
+    <>
+      <header className={`hdr ${scrolled ? "is-scrolled" : ""}`}>
+        <div className="shell hdr-in">
+          <button className={`menu-btn ${menu ? "is-open" : ""}`} onClick={() => setMenu(!menu)} aria-label={menu ? "Close menu" : "Open menu"} aria-expanded={menu} aria-controls="mobile-menu">
+            <span /><span /><span />
           </button>
+          <nav className="nav">
+            <Link href="/#range">Shop</Link>
+            <Link href="/stockists">Stockists</Link>
+            <Link href="/quality">Quality</Link>
+            <Link href="/#kitchen">Our kitchen</Link>
+          </nav>
+          <Link href="/" className="mark" aria-label="The Pantry Harvest Co. home">
+            <img src="/brand/logo-header.svg" alt="The Pantry Harvest Co." width="150" height="100" />
+          </Link>
+          <div className="hdr-right">
+            {status && (
+              <span className="status"><i className={status.open ? "on" : ""} />{status.label}</span>
+            )}
+            <button className="cartbtn" onClick={() => setOpen(true)} aria-label={`Basket, ${count} items`}>
+              <span className="cart-word">Basket</span>
+              <svg className="cart-ico" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8Z M9 8V6a3 3 0 0 1 6 0v2" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" /></svg>
+              <b>{count}</b>
+            </button>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+      <MobileMenu open={menu} onClose={() => setMenu(false)} status={status} />
+    </>
+  );
+}
+
+const MENU_LINKS = [
+  { href: "/#range", label: "Shop the range" },
+  { href: "/stockists", label: "Stockists" },
+  { href: "/quality", label: "Quality & goodness" },
+  { href: "/#kitchen", label: "Our kitchen" },
+  { href: "/delivery", label: "Delivery & returns" },
+];
+
+function MobileMenu({ open, onClose, status }) {
+  useEffect(() => {
+    if (!open) return;
+    document.documentElement.classList.add("lock");
+    const k = (e) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", k);
+    return () => { document.documentElement.classList.remove("lock"); window.removeEventListener("keydown", k); };
+  }, [open, onClose]);
+  return (
+    <>
+      <div className={`mmenu-scrim ${open ? "on" : ""}`} onClick={onClose} />
+      <aside id="mobile-menu" className={`mmenu ${open ? "on" : ""}`} aria-hidden={!open} aria-label="Menu">
+        <div className="mmenu-top">
+          <img src="/brand/logo-header.svg" alt="" width="104" height="70" />
+          <button className="x" onClick={onClose} aria-label="Close menu">×</button>
+        </div>
+        {status && <p className="mmenu-status"><i className={status.open ? "on" : ""} />{status.label}</p>}
+        <nav className="mmenu-links">
+          {MENU_LINKS.map((l, i) => (
+            <Link key={l.href} href={l.href} onClick={onClose} style={{ transitionDelay: open ? `${80 + i * 45}ms` : "0ms" }}>
+              <span>{String(i + 1).padStart(2, "0")}</span>{l.label}
+            </Link>
+          ))}
+        </nav>
+        <div className="mmenu-products">
+          <p className="eyebrow">The jars</p>
+          <div>
+            {PRODUCTS.map((p) => (
+              <Link key={p.id} href={`/products/${p.handle}`} onClick={onClose} style={{ background: p.metadata.stage }}>
+                <Photo src={img(p, "front")} alt="" pack />
+                <span>{p.title}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+        <a className="mmenu-chat" href={waLink("Hello! I have a question about The Pantry Harvest Co.")} target="_blank" rel="noopener noreferrer">
+          <ChatIcon /> <span>Chat with us on WhatsApp<small>{CONTACT.display}</small></span>
+        </a>
+        <p className="mmenu-legal"><Link href="/terms" onClick={onClose}>Terms</Link> · <Link href="/privacy" onClick={onClose}>Privacy</Link></p>
+      </aside>
+    </>
   );
 }
 
@@ -152,6 +217,7 @@ export function Footer() {
           <span>Kololo, Kampala</span>
           <span>Cooking Monday &amp; Thursday</span>
           <span>Mon–Sat, 08:00–17:00</span>
+          <a href={`tel:${CONTACT.tel}`}>{CONTACT.display}</a>
           <span>hello@pantryharvest.co</span>
         </div>
       </div>
