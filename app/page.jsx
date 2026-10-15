@@ -2,14 +2,14 @@
 import Link from "next/link";
 import { PRODUCTS, money, fromPrice } from "@/lib/data";
 import { useCart } from "@/lib/cart";
-import Jar from "@/components/Jar";
+import Photo, { img } from "@/components/Photo";
 import Reveal, { badgeClass } from "@/components/Reveal";
 
 const firstInStock = (p) => p.variants.find((v) => v.inventory_quantity > 0);
 
 export default function Home() {
   const { add } = useCart();
-  const [chilli, pesto, hummus, beet] = PRODUCTS;
+  const [chilli] = PRODUCTS;
   const hero = firstInStock(chilli);
 
   return (
@@ -35,11 +35,7 @@ export default function Home() {
         </div>
 
         <div className="stage stage-hero">
-          <p className="eyebrow stage-tag">This week&apos;s bestseller</p>
-          <p className="stage-note">sealed this week</p>
-          <div className="jar-side" style={{ left: "9%" }}><Jar product={pesto} size="180 g" width={130} shadow={false} /></div>
-          <div className="jar-side" style={{ right: "9%" }}><Jar product={beet} size="250 g" width={130} shadow={false} /></div>
-          <div className="jar-wrap"><Jar product={chilli} size={hero.title} width={250} /></div>
+          <Photo src="hero" alt="Chilli Paste jar on a granite counter with Basil Pesto and Beetroot behind it" eager position="50% 60%" />
           <div className="chip">
             <p>{chilli.title}<span>{money(hero.calculated_price.calculated_amount)} · {hero.title} · fresh batch</span></p>
             <button onClick={() => add(hero.id, 1, `${chilli.title} ${hero.title}`)}>+ Add</button>
@@ -53,16 +49,12 @@ export default function Home() {
           <div className="sec-label eyebrow"><span>01</span>Our kitchen</div>
           <div className="kitchen">
             <Reveal className="kitchen-art">
-              {[[chilli, hummus, pesto], [beet, chilli, hummus], [pesto, beet, chilli]].map((shelf, i) => (
-                <div className="shelf" key={i}>
-                  {shelf.map((p, j) => <Jar key={j} product={p} size={p.variants[0].title} width={108} shadow={false} />)}
-                </div>
-              ))}
+              <Photo src="kitchen-shelf" alt="Wooden pantry shelves stocked with all four Pantry Harvest jars" />
               <p className="caption">straight from the pantry shelf</p>
             </Reveal>
             <Reveal className="kitchen-copy">
               <p className="big">
-                Pantry Harvest is a small kitchen built around slow cooking, honest ingredients and the
+                The Pantry Harvest Co. is a small kitchen built around slow cooking, honest ingredients and the
                 simple pleasure of opening a jar that tastes like someone made it for you.
               </p>
               <div className="kitchen-meta">
@@ -91,7 +83,7 @@ export default function Home() {
                   return (
                     <div className="prow" key={p.id}>
                       <Link href={`/products/${p.handle}`} className="thumb" style={{ background: p.metadata.stage }}>
-                        <Jar product={p} size={v?.title || ""} width={40} shadow={false} />
+                        <Photo src={img(p, "front")} alt="" pack />
                       </Link>
                       <Link href={`/products/${p.handle}`}>
                         <h3>{p.title}{p.metadata.badge && <span className={`badge ${badgeClass(p.metadata.badge)}`}>{p.metadata.badge.toUpperCase()}</span>}</h3>
@@ -109,7 +101,7 @@ export default function Home() {
             <div className="feature">
               {PRODUCTS.map((p) => (
                 <Link key={p.id} href={`/products/${p.handle}`} style={{ background: p.metadata.stage }}>
-                  <div><Jar product={p} size={p.variants[0].title} width={120} /></div>
+                  <div><Photo src={img(p, "life")} alt={`${p.title} jar in the kitchen`} /></div>
                   <span>{p.title.toLowerCase()}</span>
                 </Link>
               ))}
@@ -132,8 +124,12 @@ export default function Home() {
 
       <section className="band">
         <div className="shell band-in">
-          <h2>Start with the jar everyone <em>reorders.</em></h2>
-          <Link href="/products/chilli-paste" className="btn ghost">Shop Chilli Paste →</Link>
+          <div className="band-copy">
+            <h2>Four jars. One very <em>good pantry.</em></h2>
+            <p>Chilli Paste, Basil Pesto, Hummus and Beetroot, made to sit side by side on your shelf.</p>
+            <Link href="#range" className="btn ghost">Shop the range →</Link>
+          </div>
+          <div className="band-img"><Photo src="range-row" alt="All four Pantry Harvest jars in a row with fresh chillies, basil, chickpeas and beetroot" /></div>
         </div>
       </section>
     </>

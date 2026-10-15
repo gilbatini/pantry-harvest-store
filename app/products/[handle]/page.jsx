@@ -7,7 +7,7 @@ export const generateStaticParams = () => PRODUCTS.map((p) => ({ handle: p.handl
 export async function generateMetadata({ params }) {
   const { handle } = await params;
   const p = PRODUCTS.find((x) => x.handle === handle);
-  return p ? { title: `${p.title} — Pantry Harvest Co.`, description: p.description } : {};
+  return p ? { title: `${p.title} — The Pantry Harvest Co.`, description: p.description } : {};
 }
 
 export default async function Page({ params }) {

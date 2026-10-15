@@ -3,10 +3,10 @@ import Link from "next/link";
 import { useState } from "react";
 import { PRODUCTS, money, fromPrice } from "@/lib/data";
 import { useCart } from "@/lib/cart";
-import Jar from "@/components/Jar";
+import Photo, { img } from "@/components/Photo";
 import { badgeClass } from "@/components/Reveal";
 
-const VIEWS = ["front", "pair", "shelf"];
+const HAS_USE = ["chilli-paste", "basil-pesto"];
 
 export default function ProductView({ handle }) {
   const product = PRODUCTS.find((p) => p.handle === handle);
@@ -18,22 +18,13 @@ export default function ProductView({ handle }) {
   const inStock = variant.inventory_quantity > 0;
   const others = PRODUCTS.filter((p) => p.id !== product.id);
 
-  const Stage = ({ kind, w }) => {
-    if (kind === "pair")
-      return (
-        <div style={{ display: "flex", alignItems: "flex-end", gap: w * 0.08 }}>
-          <Jar product={product} size={product.variants[0].title} width={w * 0.62} />
-          <Jar product={product} size={product.variants[1].title} width={w * 0.8} />
-        </div>
-      );
-    if (kind === "shelf")
-      return (
-        <div style={{ display: "flex", alignItems: "flex-end", gap: w * 0.04 }}>
-          {[0, 1, 2].map((i) => <Jar key={i} product={product} size={variant.title} width={w * 0.48} shadow={i === 1} />)}
-        </div>
-      );
-    return <Jar product={product} size={variant.title} width={w} />;
-  };
+  const views = [
+    { k: "front", src: img(product, "front"), pack: true, note: "sealed this week", alt: `${product.title} jar` },
+    { k: "sizes", src: img(product, "sizes"), pack: true, note: "two sizes", alt: `${product.title} in both jar sizes` },
+    ...(HAS_USE.includes(product.handle) ? [{ k: "use", src: img(product, "use"), alt: `${product.title} served at the table` }] : []),
+    { k: "life", src: img(product, "life"), alt: `${product.title} jar in the kitchen` },
+  ];
+  const cur = views.find((x) => x.k === view) || views[0];
 
   return (
     <div className="shell">
@@ -41,13 +32,13 @@ export default function ProductView({ handle }) {
       <div className="pdp">
         <div className="pdp-media">
           <div className="pdp-stage" style={{ background: m.stage }}>
-            <span className="serif">{view === "front" ? "sealed this week" : view === "pair" ? "two sizes" : "stock the shelf"}</span>
-            <div key={view} style={{ animation: "pop .45s ease" }}>{Stage({ kind: view, w: 280 })}</div>
+            {cur.note && <span className="serif">{cur.note}</span>}
+            <Photo key={cur.k} src={cur.src} alt={cur.alt} pack={cur.pack} eager className="fade" />
           </div>
-          <div className="views">
-            {VIEWS.map((k) => (
-              <button key={k} className={view === k ? "on" : ""} style={{ background: m.stage }} onClick={() => setView(k)} aria-label={`${k} view`}>
-                {Stage({ kind: k, w: 80 })}
+          <div className="views" style={{ gridTemplateColumns: `repeat(${views.length}, 1fr)` }}>
+            {views.map((x) => (
+              <button key={x.k} className={cur.k === x.k ? "on" : ""} style={{ background: m.stage }} onClick={() => setView(x.k)} aria-label={`Show ${x.alt}`}>
+                <Photo src={x.src} alt="" pack={x.pack} />
               </button>
             ))}
           </div>
@@ -55,7 +46,7 @@ export default function ProductView({ handle }) {
 
         <div className="pdp-info">
           <p className="eyebrow" style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            Pantry Harvest Co.{m.badge && <span className={`badge ${badgeClass(m.badge)}`}>{m.badge.toUpperCase()}</span>}
+            The Pantry Harvest Co.{m.badge && <span className={`badge ${badgeClass(m.badge)}`}>{m.badge.toUpperCase()}</span>}
           </p>
           <h1>{product.title}</h1>
           <p className="sub">{product.subtitle}</p>
@@ -126,7 +117,7 @@ export default function ProductView({ handle }) {
         <div className="more">
           {others.map((p) => (
             <Link key={p.id} href={`/products/${p.handle}`} className="card">
-              <div className="card-stage" style={{ background: p.metadata.stage }}><div><Jar product={p} size={p.variants[0].title} width={150} /></div></div>
+              <div className="card-stage" style={{ background: p.metadata.stage }}><div><Photo src={img(p, "life")} alt={`${p.title} jar`} /></div></div>
               <h3>{p.title}</h3>
               <p>{p.subtitle} · from {money(fromPrice(p))}</p>
             </Link>

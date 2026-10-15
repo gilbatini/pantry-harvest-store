@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useCart } from "@/lib/cart";
 import { FREE_DELIVERY_AT, PRODUCTS, money } from "@/lib/data";
-import Jar from "./Jar";
+import Photo, { img } from "./Photo";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -37,7 +37,7 @@ export function Header() {
   return (
     <header className={`hdr ${scrolled ? "is-scrolled" : ""}`}>
       <div className="shell hdr-in">
-        <Link href="/" className="mark">PANTRY HARVEST<span>.</span></Link>
+        <Link href="/" className="mark">THE PANTRY HARVEST CO<span>.</span></Link>
         <nav className="nav">
           <Link href="/#range">Shop</Link>
           <Link href="/#kitchen">Our kitchen</Link>
@@ -90,7 +90,7 @@ export function CartDrawer() {
               const p = byHandle(i.product_handle);
               return (
                 <div className="line" key={i.id}>
-                  <div className="line-thumb" style={{ background: p.metadata.stage }}><Jar product={p} size={i.variant_title} width={44} shadow={false} /></div>
+                  <div className="line-thumb" style={{ background: p.metadata.stage }}><Photo src={img(p, "front")} alt="" pack /></div>
                   <div className="line-info">
                     <p className="line-title">{i.product_title}</p>
                     <p className="muted">{i.variant_title} · {money(i.unit_price)}</p>
@@ -131,7 +131,7 @@ export function Footer() {
     <footer className="foot" id="visit">
       <div className="shell foot-in">
         <div>
-          <p className="mark big">PANTRY HARVEST<span>.</span></p>
+          <p className="mark big">THE PANTRY HARVEST CO<span>.</span></p>
           <p className="muted">Small-batch condiments, cooked twice a week and sealed in glass.</p>
         </div>
         <div>
@@ -151,7 +151,7 @@ export function Footer() {
         </div>
       </div>
       <div className="shell foot-base">
-        <span>© 2026 Pantry Harvest Co.</span>
+        <span>© 2026 The Pantry Harvest Co.</span>
         <span>Demo storefront · prices are placeholders</span>
       </div>
     </footer>

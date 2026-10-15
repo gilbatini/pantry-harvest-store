@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { useCart } from "@/lib/cart";
 import { sdk, applyPromo } from "@/lib/sdk";
 import { PRODUCTS, SHIPPING, FREE_DELIVERY_AT, money } from "@/lib/data";
-import Jar from "@/components/Jar";
+import Photo, { img } from "@/components/Photo";
 
 const PAY = [
   { id: "momo", name: "Mobile Money", detail: "MTN MoMo or Airtel Money — approve on your phone", logos: ["MTN", "AIRTEL"] },
@@ -133,7 +133,7 @@ export default function Checkout() {
             <div className="line" key={i.id}>
               <div className="line-thumb" style={{ background: p.metadata.stage }}>
                 <span className="qty-dot">{i.quantity}</span>
-                <Jar product={p} size={i.variant_title} width={38} shadow={false} />
+                <Photo src={img(p, "front")} alt="" pack />
               </div>
               <div><p className="line-title">{i.product_title}</p><p className="muted small">{i.variant_title}</p></div>
               <div className="line-end"><p>{money(i.unit_price * i.quantity)}</p></div>

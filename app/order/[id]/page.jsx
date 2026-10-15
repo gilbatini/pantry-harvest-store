@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { sdk } from "@/lib/sdk";
 import { PRODUCTS, money } from "@/lib/data";
-import Jar from "@/components/Jar";
+import Photo, { img } from "@/components/Photo";
 
 const fmt = (d) => d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
 
@@ -66,7 +66,7 @@ export default function Order() {
           const p = byHandle(i.product_handle);
           return (
             <div className="line" key={i.id} style={{ gridTemplateColumns: "56px 1fr auto" }}>
-              <div className="line-thumb" style={{ background: p.metadata.stage, width: 56, height: 66 }}><Jar product={p} size={i.variant_title} width={36} shadow={false} /></div>
+              <div className="line-thumb" style={{ background: p.metadata.stage, width: 56, height: 66 }}><Photo src={img(p, "front")} alt="" pack /></div>
               <div><p className="line-title">{i.product_title}</p><p className="muted small">{i.variant_title} × {i.quantity}</p></div>
               <div className="line-end"><p>{money(i.unit_price * i.quantity)}</p></div>
             </div>

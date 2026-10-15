@@ -2,9 +2,15 @@ import "./globals.css";
 import { CartProvider } from "@/lib/cart";
 import { Header, CartDrawer, Footer, Toast } from "@/components/Chrome";
 
+const site = process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000";
+const description = "Chilli Paste, Basil Pesto, Hummus and Beetroot — cooked twice a week in small batches and sealed in glass.";
+
 export const metadata = {
-  title: "Pantry Harvest Co. — Small-batch condiments, sealed in glass",
-  description: "Chilli Paste, Basil Pesto, Hummus and Beetroot — cooked twice a week in small batches and sealed in glass.",
+  metadataBase: new URL(site),
+  title: "The Pantry Harvest Co. — Small-batch condiments, sealed in glass",
+  description,
+  openGraph: { title: "The Pantry Harvest Co.", description, images: [{ url: "/og.jpg", width: 1200, height: 630 }], type: "website" },
+  twitter: { card: "summary_large_image", images: ["/og.jpg"] },
 };
 
 export const viewport = { themeColor: "#f3ede1" };
