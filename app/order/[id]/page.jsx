@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { sdk } from "@/lib/sdk";
 import { PRODUCTS, money } from "@/lib/data";
+import { MOMO, masked } from "@/lib/momo";
 import Photo, { img } from "@/components/Photo";
 
 const fmt = (d) => d.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" });
@@ -37,6 +38,18 @@ export default function Order() {
   ];
   const byHandle = (h) => PRODUCTS.find((p) => p.handle === h);
 
+  const ses = order.payment_collection?.payment_sessions?.[0];
+  const net = ses && Object.values(MOMO).find((n) => n.provider_id === ses.provider_id);
+  const paid = ses?.status === "authorized";
+  const payment = net
+    ? { label: `${net.name} · ${masked(ses.data.phone)}`, status: paid ? "Paid" : "Not paid", ref: ses.data.transaction_id, sub: `Ref ${ses.data.reference}` }
+    : ses?.provider_id === "pp_card"
+      ? { label: ses.data.card || "Card", status: "Paid", ref: null, sub: null }
+      : { label: "Pay on delivery", status: "Due on delivery", ref: null, sub: `Pay ${money(order.total)} in cash or mobile money to the rider` };
+  steps.splice(1, 0, paid
+    ? { t: "Payment received", s: `${net ? net.name : "Card"} · ${money(order.total)}`, d: fmt(placed), on: true }
+    : { t: "Payment on delivery", s: `${money(order.total)} due to the rider`, d: fmt(deliver) });
+
   return (
     <div className="shell done">
       <div className="tick">✓</div>
@@ -62,6 +75,14 @@ export default function Order() {
 
       <div className="track">
         <p className="eyebrow" style={{ marginBottom: 6 }}>Receipt</p>
+        <div className="paybox">
+          <div>
+            <b>{payment.label}</b>
+            {payment.ref && <span>Transaction ID {payment.ref}</span>}
+            {payment.sub && <span>{payment.sub}</span>}
+          </div>
+          <span className={`paystate ${paid ? "ok" : ""}`}>{payment.status}</span>
+        </div>
         {order.items.map((i) => {
           const p = byHandle(i.product_handle);
           return (
@@ -75,7 +96,7 @@ export default function Order() {
         <div className="sums" style={{ borderTop: 0 }}>
           {order.discount_total > 0 && <div className="row"><span>Discount</span><b>−{money(order.discount_total)}</b></div>}
           <div className="row"><span>Delivery</span><b>{order.shipping_total ? money(order.shipping_total) : "Free"}</b></div>
-          <div className="row total"><span>Total paid</span><b>{money(order.total)}</b></div>
+          <div className="row total"><span>{paid ? "Total paid" : "Total due"}</span><b>{money(order.total)}</b></div>
         </div>
       </div>
 

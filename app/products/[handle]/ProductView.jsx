@@ -82,9 +82,9 @@ export default function ProductView({ handle }) {
           </div>
 
           <div className="trust">
-            <div><b>Free delivery</b>On orders over $40</div>
+            <div><b>Free delivery</b>On orders over UGX 100,000</div>
             <div><b>Cooked {product.handle === "hummus" ? "fresh" : "twice weekly"}</b>Monday &amp; Thursday</div>
-            <div><b>Jar return</b>$0.50 off per empty</div>
+            <div><b>Jar return</b>UGX 1,000 off per empty</div>
           </div>
 
           <p style={{ fontSize: 16, color: "var(--ink-2)", marginBottom: 26 }}>{product.description}</p>

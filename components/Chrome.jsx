@@ -148,13 +148,13 @@ export function Footer() {
         </div>
         <div>
           <p className="eyebrow">The jar promise</p>
-          <span>Return your empties for $0.50 off</span>
+          <span>Return your empties for UGX 1,000 off</span>
           <span>No preservatives, ever</span>
         </div>
       </div>
       <div className="shell foot-base">
         <span>© 2026 The Pantry Harvest Co.</span>
-        <span>Demo storefront · prices are placeholders</span>
+        <span>Demo storefront · demo prices in UGX</span>
       </div>
     </footer>
   );

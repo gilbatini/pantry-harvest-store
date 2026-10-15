@@ -3,15 +3,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useCart } from "@/lib/cart";
-import { sdk, applyPromo } from "@/lib/sdk";
+import { sdk, applyPromo, simulateMobileMoney } from "@/lib/sdk";
+import { MOMO, detectNetwork, normalise, display } from "@/lib/momo";
+import MobileMoneyPrompt from "@/components/MobileMoneyPrompt";
 import { PRODUCTS, SHIPPING, FREE_DELIVERY_AT, money } from "@/lib/data";
 import Photo, { img } from "@/components/Photo";
 
 const PAY = [
-  { id: "momo", name: "Mobile Money", detail: "MTN MoMo or Airtel Money — approve on your phone", logos: ["MTN", "AIRTEL"] },
-  { id: "card", name: "Card", detail: "Visa, Mastercard — secured by the payment provider", logos: ["VISA", "MC"] },
-  { id: "cod", name: "Pay on delivery", detail: "Cash or mobile money when your jars arrive", logos: [] },
+  { id: "momo", name: "Mobile Money", detail: "MTN MoMo or Airtel Money — approve with your PIN", logos: ["MTN", "AIRTEL"] },
+  { id: "card", name: "Visa or Mastercard", detail: "Paid on the provider's secure page", logos: ["VISA", "MC"] },
+  { id: "cod", name: "Pay on delivery", detail: "Cash or mobile money to the rider when your jars arrive", logos: [] },
 ];
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export default function Checkout() {
   const router = useRouter();
@@ -22,6 +25,10 @@ export default function Checkout() {
   const [promoMsg, setPromoMsg] = useState(null);
   const [placing, setPlacing] = useState(false);
   const [form, setForm] = useState({ email: "", phone: "", first: "", last: "", address: "", area: "", city: "Kampala" });
+  const [momoNumber, setMomoNumber] = useState("");
+  const [momoEdited, setMomoEdited] = useState(false);
+  const [netPick, setNetPick] = useState(null);
+  const [mm, setMm] = useState(null); // { stage, reference, txn }
 
   useEffect(() => {
     if (!cart || !cart.items.length) return;
@@ -45,21 +52,68 @@ export default function Checkout() {
       </div>
     );
 
-  const set = (k) => (e) => setForm({ ...form, [k]: e.target.value });
-  const valid = form.email.includes("@") && form.phone.length > 6 && form.first && (ship === "so_pickup" || form.address);
+  const set = (k) => (e) => {
+    setForm({ ...form, [k]: e.target.value });
+    if (k === "phone" && !momoEdited) setMomoNumber(e.target.value);
+  };
+  const detected = detectNetwork(momoNumber);
+  const network = netPick ? MOMO[netPick] : detected;
+  const momoOk = pay !== "momo" || (normalise(momoNumber) && network);
+  const valid = form.email.includes("@") && normalise(form.phone) && form.first && (ship === "so_pickup" || form.address) && momoOk;
 
   const onPromo = async () => {
     try { const { cart: c } = await applyPromo(cart.id, code); replace(c); setPromoMsg({ ok: true, t: `${code.toUpperCase()} applied — 10% off` }); }
     catch (e) { setPromoMsg({ ok: false, t: e.message }); }
   };
 
-  const place = async () => {
-    setPlacing(true);
-    await sdk.store.cart.update(cart.id, { email: form.email, shipping_address: { ...form }, payment: pay });
-    await new Promise((r) => setTimeout(r, 900));
+  const finish = async () => {
     const { order } = await sdk.store.cart.complete(cart.id);
     await reset();
     router.push(`/order/${order.id}`);
+  };
+
+  // Mobile money: push a PIN prompt to the customer's phone, then wait.
+  const sendPrompt = async () => {
+    setMm({ stage: "sending" });
+    const { cart: c } = await sdk.store.payment.initiatePaymentSession(cart, {
+      provider_id: network.provider_id,
+      data: { phone: normalise(momoNumber), network: network.id },
+    });
+    replace(c);
+    await wait(1600);
+    setMm({ stage: "awaiting", reference: c.payment_collection.payment_sessions[0].data.reference });
+  };
+  const onPin = async () => {
+    setMm((m) => ({ ...m, stage: "confirming" }));
+    await wait(1800);
+    const { cart: c } = await simulateMobileMoney(cart.id, "approved");
+    const txn = c.payment_collection.payment_sessions[0].data.transaction_id;
+    setMm((m) => ({ ...m, stage: "approved", txn }));
+    await wait(2200);
+    await finish();
+  };
+  const onFail = (outcome) => async () => {
+    await simulateMobileMoney(cart.id, outcome);
+    setMm((m) => ({ ...m, stage: outcome }));
+  };
+
+  const place = async () => {
+    setPlacing(true);
+    await sdk.store.cart.update(cart.id, { email: form.email, shipping_address: { ...form } });
+    if (pay === "momo") {
+      setPlacing(false);
+      return sendPrompt();
+    }
+    const provider_id = pay === "card" ? "pp_card" : "pp_system_default";
+    await sdk.store.payment.initiatePaymentSession(cart, { provider_id, data: {} });
+    if (pay === "card") {
+      await wait(1200);
+      await sdk.store.cart.update(cart.id, {}).then(({ cart: c }) => {
+        const ses = { ...c.payment_collection.payment_sessions[0], status: "authorized", data: { ...c.payment_collection.payment_sessions[0].data, card: "Visa •••• 4242" } };
+        return sdk.store.cart.update(cart.id, { payment_collection: { ...c.payment_collection, payment_sessions: [ses] } });
+      });
+    }
+    await finish();
   };
 
   const byHandle = (h) => PRODUCTS.find((p) => p.handle === h);
@@ -109,20 +163,64 @@ export default function Checkout() {
           <div className="block-h"><span className="n">iii.</span><h2>Payment</h2></div>
           <div className="choice">
             {PAY.map((o) => (
-              <div key={o.id} className={`opt ${pay === o.id ? "on" : ""}`} onClick={() => setPay(o.id)} role="radio" aria-checked={pay === o.id} tabIndex={0} onKeyDown={(e) => e.key === "Enter" && setPay(o.id)}>
-                <span className="dot" />
-                <div><b>{o.name}</b><span>{o.detail}</span></div>
-                <span className="logos">{o.logos.map((l) => <i key={l}>{l}</i>)}</span>
+              <div key={o.id}>
+                <div className={`opt ${pay === o.id ? "on" : ""}`} onClick={() => setPay(o.id)} role="radio" aria-checked={pay === o.id} tabIndex={0} onKeyDown={(e) => e.key === "Enter" && setPay(o.id)}>
+                  <span className="dot" />
+                  <div><b>{o.name}</b><span>{o.detail}</span></div>
+                  <span className="logos">{o.logos.map((l) => <i key={l} className={`lg-${l.toLowerCase()}`}>{l}</i>)}</span>
+                </div>
+                {o.id === "momo" && pay === "momo" && (
+                  <div className="momo-panel">
+                    <label className="field">
+                      <span>Mobile money number</span>
+                      <input id="momo-number" type="tel" inputMode="tel" placeholder="0772 123 456" value={momoNumber}
+                        onChange={(e) => { setMomoNumber(e.target.value); setMomoEdited(true); setNetPick(null); }} />
+                    </label>
+                    <div className="nets" role="radiogroup" aria-label="Network">
+                      {Object.values(MOMO).map((n) => (
+                        <button key={n.id} type="button" role="radio" aria-checked={network?.id === n.id}
+                          className={`net net-${n.id} ${network?.id === n.id ? "on" : ""}`} onClick={() => setNetPick(n.id)}>
+                          {n.name}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="muted small">
+                      {!normalise(momoNumber)
+                        ? "Enter the number registered for MTN MoMo or Airtel Money."
+                        : detected && !netPick
+                          ? <>Detected <b>{detected.name}</b> from the number. You&apos;ll get a prompt on {display(momoNumber)} to approve with your PIN.</>
+                          : network
+                            ? <>You&apos;ll get a {network.name} prompt on {display(momoNumber)} to approve with your PIN.</>
+                            : "We couldn't tell the network from this number — pick MTN or Airtel."}
+                    </p>
+                  </div>
+                )}
               </div>
             ))}
           </div>
-          <p className="muted small" style={{ marginTop: 14 }}>Demo checkout — no payment is taken.</p>
+          <p className="muted small" style={{ marginTop: 14 }}>Demo checkout — no real money moves.</p>
         </div>
 
         <button className="btn solid wide" disabled={!valid || placing} onClick={place} style={{ height: 58, fontSize: 16 }}>
-          {placing ? "Placing your order…" : `Place order — ${money(cart.total)}`}
+          {placing ? "Placing your order…" : pay === "momo" ? `Pay ${money(cart.total)} with ${network ? network.name : "mobile money"}` : `Place order — ${money(cart.total)}`}
         </button>
-        {!valid && <p className="muted small" style={{ marginTop: 10 }}>Add your email, phone, name{ship !== "so_pickup" ? " and address" : ""} to continue.</p>}
+        {!valid && <p className="muted small" style={{ marginTop: 10 }}>Add your email, a Ugandan phone number, your name{ship !== "so_pickup" ? ", your address" : ""}{pay === "momo" ? " and your mobile money number" : ""} to continue.</p>}
+        {mm && network && (
+          <MobileMoneyPrompt
+            network={network}
+            phone={momoNumber}
+            amount={cart.total}
+            reference={mm.reference}
+            txn={mm.txn}
+            stage={mm.stage}
+            onPin={onPin}
+            onDecline={onFail("declined")}
+            onTimeout={onFail("timeout")}
+            onResend={sendPrompt}
+            onSwitch={() => { setMm(null); setPay("cod"); }}
+            onClose={() => setMm(null)}
+          />
+        )}
       </div>
 
       <aside className="summary">
@@ -151,7 +249,7 @@ export default function Checkout() {
           <div className="row"><span>Delivery</span><b>{cart.shipping_total ? money(cart.shipping_total) : "Free"}</b></div>
           <div className="row total"><span>Total</span><b>{money(cart.total)}</b></div>
         </div>
-        <p className="muted small">Prices in USD for the demo.</p>
+        <p className="muted small">All prices in Uganda Shillings.</p>
       </aside>
     </div>
   );

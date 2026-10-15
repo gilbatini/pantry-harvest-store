@@ -95,7 +95,7 @@ export default function Home() {
                   );
                 })}
               </div>
-              <p className="muted small" style={{ marginTop: 16 }}>Sizes and full details on each product page. Free delivery over $40.</p>
+              <p className="muted small" style={{ marginTop: 16 }}>Sizes and full details on each product page. Free Kampala delivery over UGX 100,000.</p>
             </Reveal>
 
             <div className="feature">
@@ -117,7 +117,7 @@ export default function Home() {
           <Reveal className="method">
             <div className="step"><span className="n">i.</span><h3>Sourced close</h3><p>Chillies, basil and beetroot bought from growers we know by name, picked days — not weeks — before they reach the pot.</p></div>
             <div className="step"><span className="n">ii.</span><h3>Cooked slowly</h3><p>Two batches a week, by hand, in small pots. Roasted, pounded and simmered the long way, because that&apos;s where the flavour is.</p></div>
-            <div className="step"><span className="n">iii.</span><h3>Sealed in glass</h3><p>Jarred and sealed the same day. No plastic, no stabilisers — and every empty you return takes $0.50 off your next order.</p></div>
+            <div className="step"><span className="n">iii.</span><h3>Sealed in glass</h3><p>Jarred and sealed the same day. No plastic, no stabilisers — and every empty you return takes UGX 1,000 off your next order.</p></div>
           </Reveal>
         </div>
       </section>
